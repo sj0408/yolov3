@@ -114,6 +114,71 @@ def test(cfg,
             output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
             t1 += torch_utils.time_synchronized() - t
 
+        # slice
+        s_preds_all_batches = []
+        for path in paths:
+            # paths 로 iter 하면 batch 안에서도 slice 가능!
+            slice_path = '../test/sliced/images/' + path.split('/')[-1].split('.')[0] + '.txt'
+            sliced_dataset = LoadImagesAndLabels(slice_path, img_size=img_size, batch_size=1, rect=True, single_cls=True)
+            sliced_dataloader = DataLoader(sliced_dataset,
+                                    batch_size=1,
+                                    num_workers=min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8]),
+                                    pin_memory=True,
+                                    collate_fn=sliced_dataset.collate_fn)
+            
+            s_preds = torch.empty(0,6).to(device)
+            for s_batch_i, (s_imgs, s_targets, s_paths, s_shapes) in enumerate(sliced_dataloader): # iter 6 sliced images 
+                s_imgs = s_imgs.to(device).float() / 255.0  # uint8 to float32, 0 - 255 to 0.0 - 1.0
+                s_targets = s_targets.to(device)
+                s_nb, _, s_height, s_width = s_imgs.shape  # batch size, channels, height, width
+                s_whwh = torch.Tensor([s_width, s_height, s_width, s_height]).to(device)
+
+                # Disable gradients
+                with torch.no_grad():
+                    s_inf_out, s_train_out = model(s_imgs)  # inference and training outputs
+                    s_output = non_max_suppression(s_inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
+
+                    if s_output[0] is not None:
+                        grid_num = int(s_paths[0].split('/')[-1].split('.')[0].split('_')[-1])
+
+                        # stride values
+                        w_stride = (grid_num-1)%3
+                        h_stride = (grid_num-1)//3
+
+                        # coordinate adjust for stiching
+                        s_output[0][:,0] += (img_size * 0.75 * w_stride)
+                        s_output[0][:,2] += (img_size * 0.75 * w_stride)
+                        s_output[0][:,1] += (img_size * 0.75 * h_stride)
+                        s_output[0][:,3] += (img_size * 0.75 * h_stride)
+                        
+                        s_preds = torch.cat((s_preds, s_output[0]))
+
+            s_preds_all_batches.append(s_preds)
+        
+        # NMS for single image
+        stiched_outputs = non_max_suppression_ver_2(s_preds_all_batches)
+        
+        for img_i, stiched_output in enumerate(stiched_outputs):
+            # coordinate rescale to 416 X 416
+            if stiched_output is None:
+                stiched_outputs[img_i] = torch.empty((0,6)).to(device)
+            else:
+                w_scale = img_size / 1040   # need to be in variable
+                h_scale = img_size / 728    # need to be in variable
+
+                stiched_outputs[img_i][:,0] *= w_scale
+                stiched_outputs[img_i][:,2] *= w_scale
+                stiched_outputs[img_i][:,1] *= h_scale
+                stiched_outputs[img_i][:,3] *= h_scale    
+        
+        final_outputs = []
+        for image_i, (output, stiched_output) in enumerate(zip(outputs, stiched_outputs)):
+            cat_output = torch.cat((output, stiched_output))
+            final_outputs.append(cat_output)
+        
+        # NMS for original image and stiched image
+        output = non_max_suppression_ver_2(final_outputs,iou_thres=0.1)
+            
         # Statistics per image
         for si, pred in enumerate(output):
             labels = targets[targets[:, 0] == si, 1:]
