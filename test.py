@@ -118,7 +118,7 @@ def test(cfg,
         s_preds_all_batches = []
         for path in paths:
             # paths 로 iter 하면 batch 안에서도 slice 가능!
-            slice_path = '../test/sliced/images/' + path.split('/')[-1].split('.')[0] + '.txt'
+            slice_path = '../valid/sliced/images/' + path.split('/')[-1].split('.')[0] + '.txt'
             sliced_dataset = LoadImagesAndLabels(slice_path, img_size=img_size, batch_size=1, rect=True, single_cls=True)
             sliced_dataloader = DataLoader(sliced_dataset,
                                     batch_size=1,
