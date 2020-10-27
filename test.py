@@ -139,7 +139,7 @@ def test(cfg,
                     s_output = non_max_suppression(s_inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
 
                     if s_output[0] is not None:
-                        grid_num = int(s_paths[0].split('/')[-1].split('.')[0].split('_')[-1])
+                        grid_num = int(os.path.splitext(s_paths[0].split('/')[-1])[0].split('_')[-1])
 
                         # stride values
                         w_stride = (grid_num-1)%3
