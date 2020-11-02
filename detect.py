@@ -93,7 +93,10 @@ def detect(save_img=False):
         # Apply Classifier
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
-
+        
+        if pred[0] is None:
+            pred[0] = torch.empty((0,6)).to(device)
+            
         sub_source = os.path.splitext(path.split('/')[-1])[0]
         slice_dataset = LoadImages(f'../test/sliced/images/{sub_source}', img_size=416)
        
