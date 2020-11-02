@@ -654,6 +654,9 @@ def non_max_suppression_ver_2(prediction, conf_thres=0.1, iou_thres=0.6, multi_l
     output = [None] * len(prediction)
     for image_i, pred in enumerate(prediction):
         
+        # Apply conf constraint
+        pred = pred[pred[:, 4] > conf_thres]
+        
         # Filter by class
         if classes:
             pred = pred[(j.view(-1, 1) == torch.tensor(classes, device=j.device)).any(1)]
