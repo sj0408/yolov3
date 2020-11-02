@@ -94,8 +94,63 @@ def detect(save_img=False):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
+        sub_source = os.path.splitext(path.split('/')[-1])[0]
+        slice_dataset = LoadImages(f'../test/sliced/images/{sub_source}', img_size=416)
+       
+        s_preds = torch.empty(0,6).to(device)
+        
+        for s_path, s_img, s_im0s, s_vid_cap in slice_dataset:
+
+            s_img = torch.from_numpy(s_img).to(device)
+            s_img = s_img.half() if half else s_img.float()  # uint8 to fp16/32
+            s_img /= 255.0  # 0 - 255 to 0.0 - 1.0
+
+            if s_img.ndimension() == 3:
+                s_img = s_img.unsqueeze(0)
+
+            # Inference sliced image and stich result
+            s_pred = model(s_img)[0].float() if half else model(s_img)[0]
+
+            s_pred = non_max_suppression(s_pred, conf_thres=conf_thres, iou_thres=iou_thres)
+
+            if s_pred[0] is not None:
+                grid_num = int(os.path.splitext(s_path.split('/')[-1])[0].split('_')[-1])
+
+                # stride values
+                w_stride = (grid_num-1)%3
+                h_stride = (grid_num-1)//3
+
+                # coordinate adjust for stiching
+                s_pred[0][:,0] += (img_size * 0.75 * w_stride)
+                s_pred[0][:,2] += (img_size * 0.75 * w_stride)
+                s_pred[0][:,1] += (img_size * 0.75 * h_stride)
+                s_pred[0][:,3] += (img_size * 0.75 * h_stride)
+
+                s_preds = torch.cat((s_preds, s_pred[0]))
+
+        stiched_output = non_max_suppression_ver_2([s_preds], conf_thres=conf_thres, iou_thres=iou_thres)
+
+        # coordinate rescale to 416 X 416
+        if stiched_output[0] is None:
+            stiched_output[0] = torch.empty((0,6)).to(device)
+        else:
+            w_scale = img_size / 1040   # need to be in variable
+            h_scale = img_size / 728    # need to be in variable
+
+            stiched_output[0][:,0] *= w_scale
+            stiched_output[0][:,2] *= w_scale
+            stiched_output[0][:,1] *= h_scale
+            stiched_output[0][:,3] *= h_scale    
+        
+        # concatnate output
+        cat_output = torch.cat((output[0], stiched_output[0]))
+        final_output = [cat_output]
+
+        # NMS for original image and stiched image
+        final_output = non_max_suppression_ver_2(final_output, conf_thres=0.2, iou_thres=0.4)
+        
         # Process detections
-        for i, det in enumerate(pred):  # detections per image
+        for i, det in enumerate(final_output):  # detections per image
             if webcam:  # batch_size >= 1
                 p, s, im0 = path[i], '%g: ' % i, im0s[i]
             else:
