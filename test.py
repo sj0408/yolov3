@@ -156,7 +156,7 @@ def test(cfg,
             s_preds_all_batches.append(s_preds)
         
         # NMS for single image
-        stiched_outputs = non_max_suppression_ver_2(s_preds_all_batches)
+        stiched_outputs = non_max_suppression_ver_2(s_preds_all_batches, conf_thres=conf_thres, iou_thres=iou_thres) 
         
         for img_i, stiched_output in enumerate(stiched_outputs):
             # coordinate rescale to 416 X 416
@@ -177,7 +177,7 @@ def test(cfg,
             final_outputs.append(cat_output)
         
         # NMS for original image and stiched image
-        output = non_max_suppression_ver_2(final_outputs,iou_thres=0.1)
+        output = non_max_suppression_ver_2(final_outputs, conf_thres=0.2, iou_thres=0.4)
             
         # Statistics per image
         for si, pred in enumerate(output):
