@@ -143,7 +143,7 @@ def detect(save_img=False):
             stiched_output[0][:,3] *= h_scale    
         
         # concatnate output
-        cat_output = torch.cat((output[0], stiched_output[0]))
+        cat_output = torch.cat((pred[0], stiched_output[0]))
         final_output = [cat_output]
 
         # NMS for original image and stiched image
