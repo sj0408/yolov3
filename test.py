@@ -184,7 +184,8 @@ def test(cfg,
                   cat_output = torch.cat((output, stiched_output))
                   print('stiched \n')
                   
-            print(cat_output+'\n')
+            print(cat_output)
+            print('\n')
             final_outputs.append(cat_output)
         
         # NMS for original image and stiched image
