@@ -113,7 +113,7 @@ def test(cfg,
             t = torch_utils.time_synchronized()
             outputs = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
             t1 += torch_utils.time_synchronized() - t
-
+         
         # slice
         s_preds_all_batches = []
         for path in paths:
@@ -172,8 +172,12 @@ def test(cfg,
                 stiched_outputs[img_i][:,3] *= h_scale    
         
         final_outputs = []
-        for image_i, (output, stiched_output) in enumerate(zip(outputs, stiched_outputs)):
-            cat_output = torch.cat((output, stiched_output))
+        for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
+            fName = path.split('/')[-1]
+            if not fName.startswith('0'):
+                  cat_output = output
+            else:
+                  cat_output = torch.cat((output, stiched_output))
             final_outputs.append(cat_output)
         
         # NMS for original image and stiched image
