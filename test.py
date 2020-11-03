@@ -175,15 +175,13 @@ def test(cfg,
         for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
             
             fName = path.split('/')[-1]
-            print('\n'+fName)
                   
-            if not fName.startswith('0'):
-                  cat_output = output
-                  print('not stiched \n')
-            else:
-                  cat_output = torch.cat((output, stiched_output))
-                  print('stiched \n')
+#             if not fName.startswith('0'):
+#                   cat_output = output
+#             else:
+#                   cat_output = torch.cat((output, stiched_output))
                   
+            cat_output = torch.cat((output, stiched_output))
             print(cat_output)
             print('\n')
             final_outputs.append(cat_output)
