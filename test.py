@@ -186,8 +186,6 @@ def test(cfg,
         
         # NMS for original image and stiched image
         output = non_max_suppression_ver_2(final_outputs, conf_thres=0.2, iou_thres=0.4)
-        print(output)
-        print('\n')
 
         # Statistics per image
         for si, pred in enumerate(output):
