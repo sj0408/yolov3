@@ -176,10 +176,10 @@ def test(cfg,
             
             fName = path.split('/')[-1]
                   
-#             if not fName.startswith('0'):
-#                   cat_output = output
-#             else:
-#                   cat_output = torch.cat((output, stiched_output))
+            if not fName.startswith('0'):
+                  cat_output = output
+            else:
+                  cat_output = torch.cat((output, stiched_output))
                   
             cat_output = torch.cat((output, stiched_output))
             final_outputs.append(cat_output)
