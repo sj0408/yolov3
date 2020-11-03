@@ -175,7 +175,7 @@ def test(cfg,
         for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
             fName = path.split('/')[-1]
             if not fName.startswith('0'):
-                  cat_output = output
+                  cat_output = outputs
             else:
                   cat_output = torch.cat((output, stiched_output))
             final_outputs.append(cat_output)
