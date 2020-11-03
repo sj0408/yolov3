@@ -182,13 +182,13 @@ def test(cfg,
 #                   cat_output = torch.cat((output, stiched_output))
                   
             cat_output = torch.cat((output, stiched_output))
-            print(cat_output)
-            print('\n')
             final_outputs.append(cat_output)
         
         # NMS for original image and stiched image
         output = non_max_suppression_ver_2(final_outputs, conf_thres=0.2, iou_thres=0.4)
-        
+        print(output)
+        print('\n')
+
         # Statistics per image
         for si, pred in enumerate(output):
             labels = targets[targets[:, 0] == si, 1:]
