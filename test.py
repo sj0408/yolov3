@@ -115,9 +115,9 @@ def test(cfg,
             t1 += torch_utils.time_synchronized() - t
          
         # slice
-        s_preds_all_batches = []
+        s_preds_all_batches = [] # list for preds in batch
         for path in paths:
-            # paths 로 iter 하면 batch 안에서도 slice 가능!
+            # get sliced subimages for each image
             slice_path = '../valid/sliced/images/' + os.path.splitext(path.split('/')[-1])[0] + '.txt'
             sliced_dataset = LoadImagesAndLabels(slice_path, img_size=img_size, batch_size=1, rect=True, single_cls=True)
             sliced_dataloader = DataLoader(sliced_dataset,
@@ -175,7 +175,7 @@ def test(cfg,
         for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
             
             fName = path.split('/')[-1]
-                  
+            # exclude closed up images                  
             if not fName.startswith('0'):
                   cat_output = output
             else:
