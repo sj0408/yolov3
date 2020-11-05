@@ -325,7 +325,6 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             pbar = tqdm(self.label_files, desc='Caching labels')
             nm, nf, ne, ns, nd = 0, 0, 0, 0, 0  # number missing, found, empty, datasubset, duplicate
             for i, file in enumerate(pbar):
-                print(file) # modified
                 try:
                     with open(file, 'r') as f:
                         l = np.array([x.split() for x in f.read().splitlines()], dtype=np.float32)
