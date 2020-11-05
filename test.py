@@ -118,7 +118,8 @@ def test(cfg,
         s_preds_all_batches = [] # list for preds in batch
         for path in paths:
             # get sliced subimages for each image
-            slice_path = '../valid/sliced/images/' + os.path.splitext(path.split('/')[-1])[0] + '.txt'
+            _set_ = path.split('/')[1]
+            slice_path = f'../{_set_}/sliced/images/' + os.path.splitext(path.split('/')[-1])[0] + '.txt'
             sliced_dataset = LoadImagesAndLabels(slice_path, img_size=img_size, batch_size=1, rect=True, single_cls=True)
             sliced_dataloader = DataLoader(sliced_dataset,
                                     batch_size=1,
