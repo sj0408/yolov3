@@ -120,7 +120,7 @@ def test(cfg,
             # get sliced subimages for each image
             _set_ = path.split('/')[1]
             slice_path = f'../{_set_}/sliced/images/' + os.path.splitext(path.split('/')[-1])[0] + '.txt'
-            sliced_dataset = LoadImagesAndLabels(slice_path, img_size=img_size, batch_size=1, rect=True, single_cls=opt.single_cls)
+            sliced_dataset = LoadImagesAndLabels(slice_path, img_size=img_size, batch_size=1, rect=True, single_cls=single_cls)
             sliced_dataloader = DataLoader(sliced_dataset,
                                     batch_size=1,
                                     num_workers=min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8]),
