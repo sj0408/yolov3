@@ -18,7 +18,8 @@ def test(cfg,
          save_json=False,
          single_cls=False,
          model=None,
-         dataloader=None):
+         dataloader=None,
+         includeORG=True):
     # Initialize/load model and set device
     if model is None:
         device = torch_utils.select_device(opt.device, batch_size=batch_size)
@@ -116,6 +117,7 @@ def test(cfg,
          
         # slice
         s_preds_all_batches = [] # list for preds in batch
+        s_loss = torch.zeros(3, device=device)
         for path in paths:
             # get sliced subimages for each image
             _set_ = path.split('/')[1]
@@ -137,6 +139,11 @@ def test(cfg,
                 # Disable gradients
                 with torch.no_grad():
                     s_inf_out, s_train_out = model(s_imgs)  # inference and training outputs
+                  
+                    # Compute loss
+                    if hasattr(model, 'hyp'):  # if model has loss hyperparameters
+                           s_loss += compute_loss(s_train_out, s_targets, model)[1][:3]  # GIoU, obj, cls
+                           
                     s_output = non_max_suppression(s_inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
 
                     if s_output[0] is not None:
@@ -172,21 +179,31 @@ def test(cfg,
                 stiched_outputs[img_i][:,1] *= h_scale
                 stiched_outputs[img_i][:,3] *= h_scale    
         
-        final_outputs = []
-        for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
-            
-            fName = path.split('/')[-1]
-            # exclude closed up images                  
-            if not fName.startswith('0'):
-                  cat_output = output
-            else:
-                  cat_output = torch.cat((output, stiched_output))
-                  
-            cat_output = torch.cat((output, stiched_output))
-            final_outputs.append(cat_output)
-        
-        # NMS for original image and stiched image
-        output = non_max_suppression_ver_2(final_outputs, conf_thres=conf_thres, iou_thres=iou_thres)
+        # whether to include original img in test
+        if includeORG:          
+                 final_outputs = []
+                 for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
+
+         #             # exclude closed up images                             
+         #             fName = path.split('/')[-1]
+         #             if not fName.startswith('0'):
+         #                   cat_output = output
+         #             else:
+         #                   cat_output = torch.cat((output, stiched_output))
+
+                     if output is None:
+                           output[img_i] = torch.empty((0,6)).to(device)
+
+                     cat_output = torch.cat((output, stiched_output))
+                     final_outputs.append(cat_output)
+
+                 # total loss
+                 loss = (loss + s_loss) / 2
+
+                 # NMS for original image and stiched image
+                 output = non_max_suppression_ver_2(final_outputs, conf_thres=conf_thres, iou_thres=iou_thres)
+        else:
+                 output = stiched_outputs
 
         # Statistics per image
         for si, pred in enumerate(output):
