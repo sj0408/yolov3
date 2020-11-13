@@ -320,6 +320,7 @@ def train():
                                       single_cls=opt.single_cls,
                                       dataloader=testloader,
                                       includeORG=opt.includeORG)
+        print(opt.includeORG)
 
         # Write epoch results
         with open(results_file, 'a') as f:
