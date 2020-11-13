@@ -318,7 +318,8 @@ def train():
                                       iou_thres=0.6,
                                       save_json=final_epoch and is_coco,
                                       single_cls=opt.single_cls,
-                                      dataloader=testloader)
+                                      dataloader=testloader,
+                                      includeORG=opt.includeORG)
 
         # Write epoch results
         with open(results_file, 'a') as f:
@@ -410,6 +411,9 @@ if __name__ == '__main__':
     parser.add_argument('--adam', action='store_true', help='use adam optimizer')
     parser.add_argument('--single-cls', action='store_true', help='train as single-class dataset')
     parser.add_argument('--var', type=float, help='debug variable')
+    
+    parser.add_argument('--original', action='store_true', help='resume training from last.pt')
+    
     opt = parser.parse_args()
     opt.weights = last if opt.resume else opt.weights
     print(opt)
