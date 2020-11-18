@@ -184,14 +184,7 @@ def test(cfg,
                  final_outputs = []
                  for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
 
-         #             # exclude closed up images                             
-         #             fName = path.split('/')[-1]
-         #             if not fName.startswith('0'):
-         #                   cat_output = output
-         #             else:
-         #                   cat_output = torch.cat((output, stiched_output))
-
-                     if output is None:
+                  if output is None:
                            output[img_i] = torch.empty((0,6)).to(device)
 
                      cat_output = torch.cat((output, stiched_output))
