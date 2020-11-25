@@ -170,7 +170,7 @@ def test(cfg,
             s_preds_all_batches.append(s_preds) # preds of 6 subimages
         
         # NMS for single image
-        stiched_outputs = non_max_suppression_ver_2(s_preds_all_batches, conf_thres=conf_thres, iou_thres=iou_thres) 
+        stiched_outputs = non_max_suppression_ver_2(s_preds_all_batches, conf_thres=conf_thres, iou_thres=iou_thres) # NMS output 형태의 변수를 input으로 넣을 수 있게 변형된 함수 
         
         for img_i, stiched_output in enumerate(stiched_outputs):
             # coordinate rescale to 416 X 416
