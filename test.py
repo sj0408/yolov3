@@ -114,17 +114,23 @@ def test(cfg,
             t = torch_utils.time_synchronized()
             outputs = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
             t1 += torch_utils.time_synchronized() - t
-         
-        # slice
+      
+
+        '''
+        변경된 부분 시작
+        '''
+
+        # slice 
         s_preds_all_batches = [] # list for preds in batch
         s_loss = torch.zeros(3, device=device)
         for path in paths:
             # get sliced subimages for each image
-            _set_ = path.split('/')[1]
-            slice_path = f'../{_set_}/sliced/images/' + os.path.splitext(path.split('/')[-1])[0] + '.txt'
+            _set_ = path.split('/')[1] # get dataset str(test/valid/test)
+            imgName = os.path.splitext(path.split('/')[-1])[0]
+            slice_path = f'../{_set_}/sliced/images/' + imgName + '.txt' 
             sliced_dataset = LoadImagesAndLabels(slice_path, img_size=img_size, batch_size=1, rect=True, single_cls=single_cls)
             sliced_dataloader = DataLoader(sliced_dataset,
-                                    batch_size=1,
+                                    batch_size=1, # iter one by one
                                     num_workers=min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8]),
                                     pin_memory=True,
                                     collate_fn=sliced_dataset.collate_fn)
@@ -146,7 +152,7 @@ def test(cfg,
                            
                     s_output = non_max_suppression(s_inf_out, conf_thres=conf_thres, iou_thres=iou_thres)  # nms
 
-                    if s_output[0] is not None:
+                    if s_output[0] is not None: 
                         grid_num = int(os.path.splitext(s_paths[0].split('/')[-1])[0].split('_')[-1])
 
                         # stride values
@@ -161,7 +167,7 @@ def test(cfg,
                         
                         s_preds = torch.cat((s_preds, s_output[0]))
 
-            s_preds_all_batches.append(s_preds)
+            s_preds_all_batches.append(s_preds) # preds of 6 subimages
         
         # NMS for single image
         stiched_outputs = non_max_suppression_ver_2(s_preds_all_batches, conf_thres=conf_thres, iou_thres=iou_thres) 
@@ -182,9 +188,9 @@ def test(cfg,
         # whether to include original img in test
         if includeORG:          
                  final_outputs = []
-                 for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
+                 for image_i, (output, stiched_output) in enumerate(zip(outputs, stiched_outputs)):
 
-                          if output is None:
+                          if output is None: # output이 없는 경우 빈 tensor concatnate
                                     output[img_i] = torch.empty((0,6)).to(device)
 
                                     cat_output = torch.cat((output, stiched_output))
@@ -261,6 +267,10 @@ def test(cfg,
 
             # Append statistics (correct, conf, pcls, tcls)
             stats.append((correct.cpu(), pred[:, 4].cpu(), pred[:, 5].cpu(), tcls))
+                  
+        '''
+        변경된 부분 끝
+        '''
 
     # Compute statistics
     stats = [np.concatenate(x, 0) for x in zip(*stats)]  # to numpy
