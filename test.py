@@ -184,11 +184,11 @@ def test(cfg,
                  final_outputs = []
                  for image_i, (output, stiched_output, path) in enumerate(zip(outputs, stiched_outputs, paths)):
 
-                  if output is None:
+                 if output is None:
                            output[img_i] = torch.empty((0,6)).to(device)
 
-                     cat_output = torch.cat((output, stiched_output))
-                     final_outputs.append(cat_output)
+                           cat_output = torch.cat((output, stiched_output))
+                           final_outputs.append(cat_output)
 
                  # total loss
                  loss = (loss + s_loss) / 2
