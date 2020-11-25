@@ -200,9 +200,14 @@ def test(cfg,
                  loss = (loss + s_loss) / 2
 
                  # NMS for original image and stiched image
-                 output = non_max_suppression_ver_2(final_outputs, conf_thres=conf_thres, iou_thres=iou_thres)
+                 output = non_max_suppression_ver_2(final_outputs, conf_thres=conf_thres, iou_thres=iou_thres) # NMS output 형태의 변수를 input으로 넣을 수 있게 변형된 함수
         else:
                  output = stiched_outputs
+                  
+                  
+        '''
+        변경된 부분 끝
+        '''
 
         # Statistics per image
         for si, pred in enumerate(output):
@@ -267,10 +272,6 @@ def test(cfg,
 
             # Append statistics (correct, conf, pcls, tcls)
             stats.append((correct.cpu(), pred[:, 4].cpu(), pred[:, 5].cpu(), tcls))
-                  
-        '''
-        변경된 부분 끝
-        '''
 
     # Compute statistics
     stats = [np.concatenate(x, 0) for x in zip(*stats)]  # to numpy
